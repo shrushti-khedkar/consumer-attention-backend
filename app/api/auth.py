@@ -11,12 +11,16 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 @router.post("/register", response_model=schemas.UserResponse)
 def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
+    role = db.query(models.Role).filter(models.Role.id == user.role_id).first()
+    if not role:
+        raise HTTPException(status_code=404, detail="Role not found")
+
     hashed_pw = security.hash_password(user.password)
     new_user = models.User(
         full_name=user.full_name,
         email=user.email,
         hashed_password=hashed_pw,
-        role=user.role,
+        role_id=user.role_id,
     )
     db.add(new_user)
     try:
@@ -35,5 +39,5 @@ def login(credentials: schemas.UserLogin, db: Session = Depends(get_db)):
     if not user or not security.verify_password(credentials.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid email or password")
 
-    token = security.create_access_token(data={"sub": str(user.id), "role": user.role})
+    token = security.create_access_token(data={"sub": str(user.id), "role": user.role.name})
     return {"access_token": token, "token_type": "bearer"}

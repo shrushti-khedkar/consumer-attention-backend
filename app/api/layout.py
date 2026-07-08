@@ -2,24 +2,23 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
+from app.core.security import require_role
 from app.models import models, schemas
 
 router = APIRouter(tags=["Store Layout"])
 
 
-# ---------- Store ----------
 @router.post("/stores", response_model=schemas.StoreResponse)
-def create_store(store: schemas.StoreCreate, db: Session = Depends(get_db)):
+def create_store(
+    store: schemas.StoreCreate,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(require_role(["StoreManager", "SuperAdmin"])),
+):
     new_store = models.Store(name=store.name, location=store.location)
     db.add(new_store)
     db.commit()
     db.refresh(new_store)
     return new_store
-
-
-@router.get("/stores", response_model=list[schemas.StoreResponse])
-def list_stores(db: Session = Depends(get_db)):
-    return db.query(models.Store).all()
 
 
 # ---------- Zone ----------

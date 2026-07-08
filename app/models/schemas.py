@@ -1,12 +1,21 @@
 from pydantic import BaseModel, EmailStr
 
 
+# ---------- Role ----------
+class RoleResponse(BaseModel):
+    id: int
+    name: str
+
+    class Config:
+        from_attributes = True
+
+
 # ---------- User ----------
 class UserCreate(BaseModel):
     full_name: str
     email: EmailStr
     password: str
-    role: str
+    role_id: int
 
 class UserLogin(BaseModel):
     email: EmailStr
@@ -16,7 +25,7 @@ class UserResponse(BaseModel):
     id: int
     full_name: str
     email: str
-    role: str
+    role_id: int
 
     class Config:
         from_attributes = True
@@ -24,7 +33,6 @@ class UserResponse(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
-
 
 # ---------- Store ----------
 class StoreCreate(BaseModel):
